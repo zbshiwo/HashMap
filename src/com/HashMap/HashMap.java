@@ -132,14 +132,11 @@ public class HashMap<K, V> extends AbstractMap<K, V>
         int h;
         //
         return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
-<<<<<<< HEAD:HashMap.java
-=======
     }
 
     @Override
     public Set<Entry<k, v>> entrySet() {
         return null;
->>>>>>> f560ee88cdb00ad0ff93d954a228b738c30888f0:src/HashMap.java
     }
 
     static class Node<K, V> implements Map.Entry<K, V> {
@@ -229,8 +226,10 @@ public class HashMap<K, V> extends AbstractMap<K, V>
             if (p.hash == hash && ((k = p.key) == key) || (key != null && key.equals(k)))
                 e = p;
             // 如果最顶层的Node已经为红黑树，则...
-            else if (...)
+            else if ("" == "") {
             //不是红黑树节点，则加入到链表的最后，超过8个变为红黑树
+
+            }
             else {
                 for (int binCount = 0; ; ++binCount) {
                     if ((e = p.next) == null) {
@@ -256,8 +255,172 @@ public class HashMap<K, V> extends AbstractMap<K, V>
     }
 
 
+    /**
+     * 红黑树的特性：
+     *1、每个节点或者是黑色，或者是红色。
+     *2、根节点是黑色。
+     *3、每个叶子结点（NULL）是黑色。（这里的叶子结点指的是为空的叶子结点）。
+     *4、如果一个接点红色的，则它的子节点必须是黑色的。
+     *5、对于任意结点而言，其到叶结点树尾端NIL指针的每条路径都包含相同数目的黑结点
+     * @param <K>: Key
+     * @param <V>: Value
+     */
+    static final class TreeNode<K, V> extends LinkedHashMap.Entry<K, V> {
+        TreeNode<K,V> parent;  // 红黑树
+        TreeNode<K,V> left;
+        TreeNode<K,V> right;
+        TreeNode<K,V> prev;    // 需要在删除后取消链接
+        boolean red;
+        TreeNode(int hash, K key, V val, Node<K,V> next) {
+            super(hash, key, val, next);
+        }
 
+        /**
+         * 寻找红黑树的根节点
+         * @return: 返回红黑树的根
+         */
+        final TreeNode<K, V> root() {
+            for (TreeNode<K, V> r = this, p;;) {
+                if ((p = r.parent) == null) {
+                    return r;
+                }
+                r = p;
+            }
+        }
 
+        /**
+         * 红黑树的左旋，将右孩子变为该节点的父节点
+         * @param root: 红黑树的根节点，在红黑树的左旋过程中，根节点可能会变
+         * @param p: 以p节点进行左旋
+         * @param <K>: Key
+         * @param <V>: Value
+         * @return: 返回根节点
+         * 拓展: 泛型方法，如果你定义了一个泛型（类、接口），那么Java规定，你不能在所有的静态方法、
+         *       静态初块等所有静态内容中使用泛型的类型参数。（因为类会被具体的实例化为一个对象，从
+         *       而会有真正的K和V，而静态块和静态方法是可以直接使用的）
+         *       定义泛型方法，其格式是：修饰符 <类型参数列表> 返回类型 方法名(形参列表) { 方法体 }
+         */
+        static <K, V> TreeNode<K, V> rotateLeft(TreeNode<K, V> root, TreeNode<K, V> p) {
+            TreeNode<K, V> r, rl, pp;
+            if (p != null && (r = p.right) != null) {
+                if ((rl = p.right = r.left) != null)        //p.right = r.left
+                    rl.parent = p;                          //rl.parent = p;
+                if ((pp = r.parent = p.parent) == null) {   //r.parent = p.parent
+                    (root = r).red = false;
+                }
+                else if (pp.left == p) {
+                    pp.left = r;                            //pp.left | pp.right = r;
+                }
+                else
+                    pp.right = r;
+                r.left = p;                                 // r.left = p;
+                p.parent = r;                               //p.parent = r;
+            }
+            return root;
+        }
 
+        /**
+         * 红黑树的右旋，将左孩子变为该节点的父节点
+         * @param root: 红黑树的根节点，在红黑树的左旋过程中，根节点可能会变
+         * @param p: 以p节点进行右旋
+         * @param <K>: Key
+         * @param <V>: Value
+         * @return: 返回根节点
+         */
+        static <K, V> TreeNode<K, V> rotateRight(TreeNode<K, V> root, TreeNode<K, V> p) {
+            TreeNode<K, V> pp, l, lr;
+            if (p != null && (l = p.left) != null) {
+                if ((lr = p.left = l.right) != null) {
+                    lr.parent = p;
+                }
+                if ((pp = l.parent = p.parent) == null) {
+                    (root = l).red = false;
+                }
+                else if (pp.left == p) {
+                    pp.left = l;
+                }
+                else
+                    pp.right = l;
+                l.right = p;
+                p.parent = l;
+            }
+            return root;
+        }
+
+        /**
+         * 红黑树的平衡插入，为了维持红黑树的特性（x现在已经在红黑树中）
+         * @param root: 红黑树的根节点
+         * @param x: 需要调整的那个节点
+         * @param <K>: Key
+         * @param <V>: Value
+         * @return: 返回红黑树的根节点
+         */
+        static <K, V> TreeNode<K, V> balanceInsertion(TreeNode<K, V> root, TreeNode<K, V> x) {
+            //这里x节点设为红色，即满足红黑树特性的1,3,5
+            x.red = true;
+            for (TreeNode<K, V> xp, xpp, xppl, xppr;;) {
+                //如果xp为空的话，说明x是根节点
+                if ((xp = x.parent) == null) {
+                    x.red = false;
+                    return x;
+                }
+
+                //如果x的父节点为黑，说明红黑树不需要调整（）
+                // 如果x的祖父节点为空的话，说明x的父节点为根（黑），即红黑树不需要调整
+                else if (!xp.red || (xpp = xp.parent) == null) {
+                    return root;
+                }
+                if (xp == (xppl = xpp.left)) {
+                    //插入修复情况1：当前节点的父节点是红色，叔叔节点是红色，
+                    // 将其父节点和叔叔节点变黑，祖父节点变红，当前节点变为祖父节点
+                    if ((xppr = xpp.right)  != null && xppr.red) {
+                        xppr.red = false;
+                        xp.red = false;
+                        xpp.red = true;
+                        x = xpp;
+                    }
+                    else {
+                        //插入修复情况2：当前节点的父节点是红色,叔叔节点是黑色，
+                        // 当前节点是其父节点的右子,将父节点左旋，当前节点变为父节点
+                        if (x == xp.right) {
+                            root = rotateLeft(root, x = xp);
+                            xpp = (xp = x.parent) == null ? null : xp.parent;
+                        }
+                        //插入修复情况3：当前节点的父节点是红色,叔叔节点是黑色，
+                        // 当前节点是其父节点的左子,父节点变为黑色,祖父节点变为红色,将祖父节点右旋，
+                        if (xp != null) {
+                            xp.red = false;
+                            if (xpp != null) {
+                                xpp.red = true;
+                                root = rotateRight(root, xpp);
+                            }
+                        }
+                    }
+                }
+                else {
+                    if (xppl != null && xppl.red) {
+                        xppl.red = false;
+                        xp.red = false;
+                        xpp.red = true;
+                        x = xpp;
+                    }
+                    else {
+                        if (x == xp.left) {
+                            root = rotateRight(root, x = xp);
+                            xpp = (xp = x.parent) == null ? null : xp.parent;
+                        }
+                        if (xp != null) {
+                            xp.red = false;
+                            if (xpp != null) {
+                                xpp.red = true;
+                                root = rotateLeft(root, xpp);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    }
 
 }

@@ -9,5 +9,7 @@ public class Objects {
         return (a == b) || (a != null && a.equals(b));
     }
 
-
+    public static void main(String[] args) {
+        String json = "{\"a\":\"c\",\"b\":[\"a\",\"b\"]}";
+    }
 }
