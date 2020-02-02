@@ -1,5 +1,7 @@
 package com.HashMap;
 
+import java.util.Iterator;
+
 public abstract class AbstractCollection<E> implements Collection<E> {
 
     //TODO 为什么最大数组长度是 Integer.MAX_VALUE - 8
@@ -60,7 +62,6 @@ public abstract class AbstractCollection<E> implements Collection<E> {
 
     /**
      * 遍历 Collection ，清除指定的 object
-     * TODO how to use Iterator.remove?
      * @param object
      * @return
      * @see Iterator#remove()
@@ -87,5 +88,48 @@ public abstract class AbstractCollection<E> implements Collection<E> {
         return false;
     }
 
+    @Override
+    public boolean containsAll(Collection<?> collection) {
+        for (Object c : collection) {
+            if (!contains(c)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
+    @Override
+    public boolean addAll(Collection<? extends E> collection) {
+        boolean modified = false;
+        for (E e : collection) {
+            if (add(e)) {
+                modified = true;
+            }
+        }
+        return modified;
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> collection) {
+        return false;
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> collection) {
+        return false;
+    }
+
+    @Override
+    public void clear() {
+        Iterator<E> iterator = iterator();
+        while (iterator.hasNext()) {
+            iterator.next();
+            iterator.remove();
+        }
+    }
+
+    @Override
+    public String toString() {
+        return super.toString();
+    }
 }

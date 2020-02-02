@@ -3,37 +3,25 @@ package com.HashMap;
 import com.function.Predicate;
 import com.util.Objects;
 
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
-public interface Collection<E> extends Iterable<E> {
+import java.util.Iterator;
+
+public interface Collection<E> extends java.lang.Iterable<E> {
     int size();
 
     boolean isEmpty();
 
-    /**
-     * TODO 这里为什么要用 Object 而不是用 E
-     * @param object
-     * @return
-     * @see #remove(Object object)
-     */
-    boolean contains(Object object);
+    boolean contains(Object o);
 
-    /**
-     * 这里再定义一下这个接口，没有意义，只是标识实现了 Iterable 接口
-     * @return
-     */
     Iterator<E> iterator();
 
     Object[] toArray();
 
     <T> T[] toArray(T[] t);
     
-    boolean add(E t);
+    boolean add(E e);
 
-    boolean remove(Object object);
+    boolean remove(Object o);
 
     // Bulk Operations
 
@@ -41,9 +29,9 @@ public interface Collection<E> extends Iterable<E> {
 
     boolean addAll(Collection<? extends E> collection);
 
-    boolean removeAll(Collection<E> collection);
+    boolean removeAll(Collection<?> collection);
 
-    boolean retainAll(Collection<E> collection);
+    boolean retainAll(Collection<?> collection);
 
     void clear();
 
@@ -69,18 +57,5 @@ public interface Collection<E> extends Iterable<E> {
             }
         }
         return removed;
-    }
-
-    @Override
-    default Spliterator<E> spliterator() {
-        return Spliterators.spliterator(this, 0);
-    }
-
-    default Stream<E> stream() {
-        return StreamSupport.stream(spliterator(), false);
-    }
-
-    default Stream<E> parallelStream() {
-        return StreamSupport.stream(spliterator(), true);
     }
 }
